@@ -41,7 +41,7 @@ ul { padding-left: 22px; }
 .b-not-proven { color: var(--b-unchecked); } .b-still-seen { color: var(--b-seen); } .b-ad-not-seen-after-change { color: var(--b-not-seen); }
 .pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .pairs figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
-.pairs img { width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--line); }
+.pairs img { display: block; max-width: 100%; max-height: 520px; margin: 0 auto; height: auto; border-radius: 6px; border: 1px solid var(--line); }
 .pairs figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
 .placeholder { padding: 28px 10px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 6px; }
 footer { margin-top: 40px; color: var(--muted); font-size: 0.85rem; }

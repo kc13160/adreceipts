@@ -68,7 +68,8 @@ def run(app):
     by_target = changes_by_target(journal)
     updated = before is not None and run_info.get("device", {}).get("build_hash") != dev.get("build_hash")
 
-    surface_blocks, rec_surfaces = [], {}
+    surface_blocks, rec_surfaces, table_rows = [], {}, []
+    run_changes = [describe_change(c) for cs in by_target.values() for c in cs if c["phase"] == "done"]
     for sid, s in cat.surfaces.items():
         b_info = before["surfaces"].get(sid, {})
         a_info = after["surfaces"].get(sid, {})
@@ -83,15 +84,25 @@ def run(app):
         exact = [describe_change(c) for t in targets for c in by_target.get(t, [])]
         rec_surfaces[sid] = {"before": b_info.get("labels", []), "after": a_info.get("labels", []), "outcome": result,
                              "changes": exact}
-        caption = "%s - result: %s" % (s["name"], result)
-        surface_blocks.append({"pair": {
-            "caption": caption,
-            "before": {"image": (b_ev or {}).get("image"), "summary": summary(b_ev, b_info.get("labels", []))},
-            "after": {"image": (a_ev or {}).get("image"), "summary": summary(a_ev, a_info.get("labels", []))},
-        }})
-        surface_blocks.append({"ul": ["Exact change: %s" % ("; ".join(exact) if exact else "none made by AdReceipts"),
-                                      "How to turn it off by hand: " + " ".join(s["turn_off"].get("steps", ["-"]))
-                                      if s["turn_off"]["method"] == "manual" else "Turned off through: %s" % s["turn_off"]["method"]]})
+        how = (" ".join(s["turn_off"].get("steps", [])) if s["turn_off"]["method"] == "manual"
+               else "through: %s" % s["turn_off"]["method"])
+        if exact:
+            change_text = "; ".join(exact)
+        elif run_changes:
+            change_text = "none aimed at this location. Changes made in this run: " + "; ".join(run_changes)
+        else:
+            change_text = "none made by AdReceipts"
+        has_screen = any(e and (e.get("checked") or e.get("image")) for e in (b_ev, a_ev))
+        if has_screen:
+            surface_blocks.append({"pair": {
+                "caption": "%s - result: %s" % (s["name"], result),
+                "before": {"image": (b_ev or {}).get("image"), "summary": summary(b_ev, b_info.get("labels", []))},
+                "after": {"image": (a_ev or {}).get("image"), "summary": summary(a_ev, a_info.get("labels", []))},
+            }})
+            surface_blocks.append({"ul": ["Exact change: %s" % change_text, "How to turn it off by hand: %s" % how]})
+        else:
+            table_rows.append([s["name"], {"badges": [result]}, {"badges": b_info.get("labels", [])},
+                               {"badges": a_info.get("labels", [])}, change_text])
 
     pkg_rows = []
     names = sorted(set(before["packages"]) | set(after["packages"]))
@@ -114,7 +125,10 @@ def run(app):
             [{"badges": [NOT_PROVEN]}, "No ad was seen before (or the screen was not checked), so nothing can be proven."],
             [{"badges": [evidence.NOT_CHECKED]}, "The screen was not checked after the change."],
         ]}}]},
-        {"h": "Ad locations, before and after", "blocks": surface_blocks or [{"p": "No locations to show."}]},
+        {"h": "Screens checked before and after", "blocks": surface_blocks or [
+            {"p": "No screen was checked. Use --screenshots --consent on scan and receipts to collect screen evidence."}]},
+        {"h": "Other ad locations (no screen evidence)", "blocks": [{"table": {
+            "head": ["Location", "Result", "Before", "After", "Exact change"], "rows": table_rows}}]},
         {"h": "Packages, before and after", "blocks": [{"table": {
             "head": ["Package", "Before", "After", "Change made by AdReceipts"], "rows": pkg_rows}}]},
     ]

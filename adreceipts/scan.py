@@ -12,8 +12,8 @@ def coverage_note(cat, dev, props):
     """Say plainly when this system version is not one the catalog sources describe."""
     name = props.get("ro.mi.os.version.name") or ""
     m = re.match(r"OS(\d+)", name)
-    versions = cat.system_versions()
-    if m:
+    versions = [v for v in cat.system_versions() if v.startswith("HyperOS")]
+    if m and versions:
         label = "HyperOS %s" % m.group(1)
         if label not in versions:
             return ("Your system (%s) is not one of the versions the catalog sources describe (%s). "

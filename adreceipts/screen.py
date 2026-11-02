@@ -58,7 +58,7 @@ def sensitive(package):
 def capture_allowed(surface):
     app = surface.get("app")
     if not surface.get("capture"):
-        return False, "screenshots are not enabled for this surface in the catalog"
+        return False, "no screenshot here (not marked safe to capture)"
     if not app:
         return False, "no app is linked to this surface"
     if sensitive(app):
