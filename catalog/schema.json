@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/kc13160/adreceipts/catalog/schema.json",
+  "title": "AdReceipts ad surface catalog",
+  "description": "Where ads appear on a family of Android phones, how to turn them off, and how well each entry is proven. One file per brand and family: catalog/<brand>/<family>.yml",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "brand", "family", "display_name", "system_versions", "regions", "match", "surfaces", "packages", "drill_candidates"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "brand": {"type": "string", "pattern": "^[a-z0-9_]{2,40}$"},
+    "family": {"type": "string", "pattern": "^[a-z0-9_]{2,40}$"},
+    "display_name": {"type": "string", "minLength": 2},
+    "system_versions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "regions": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-z_]+$"}},
+    "notes": {"type": "string"},
+    "match": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "any": {"type": "boolean"},
+        "brands": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9_ -]+$"}},
+        "require_prop": {"type": "string", "pattern": "^[a-z0-9_.]+$"}
+      }
+    },
+    "surfaces": {"type": "array", "items": {"$ref": "#/definitions/surface"}},
+    "packages": {"type": "array", "items": {"$ref": "#/definitions/package"}},
+    "drill_candidates": {"type": "array", "items": {"$ref": "#/definitions/drill"}},
+    "dns_providers": {"type": "array", "items": {"$ref": "#/definitions/dns_provider"}},
+    "info_checks": {"type": "array", "items": {"$ref": "#/definitions/info_check"}}
+  },
+  "definitions": {
+    "package_name": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$", "maxLength": 255},
+    "url": {"type": "string", "pattern": "^https://[^\\s]+$"},
+    "risk": {"enum": ["safe", "prudent", "advanced", "forbidden"]},
+    "proof": {"enum": ["tested", "reported", "documented"]},
+    "tested_needs_report": {
+      "if": {"properties": {"proof": {"const": "tested"}}, "required": ["proof"]},
+      "then": {"required": ["report"], "properties": {"report": {"type": "string", "minLength": 5}}}
+    },
+    "surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "ad_type", "turn_off", "risk", "side_effects", "source", "proof"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9_]{2,60}$"},
+        "name": {"type": "string", "minLength": 3},
+        "app": {"$ref": "#/definitions/package_name"},
+        "open": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_.]*/[A-Za-z0-9_.]+$"},
+        "ad_type": {"enum": ["ad_service", "banner", "recommendations", "promoted_apps", "lock_screen", "personalized_ads", "notifications", "other"]},
+        "turn_off": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method"],
+          "properties": {
+            "method": {"enum": ["setting", "package", "manual"]},
+            "steps": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 3}},
+            "setting": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["namespace", "key", "off_value", "on_values"],
+              "properties": {
+                "namespace": {"enum": ["system", "secure", "global"]},
+                "key": {"type": "string", "pattern": "^[A-Za-z0-9_.]{1,100}$"},
+                "off_value": {"type": "string", "pattern": "^[A-Za-z0-9_.:@-]{0,253}$"},
+                "on_values": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+              }
+            },
+            "packages": {"type": "array", "minItems": 1, "items": {"$ref": "#/definitions/package_name"}}
+          },
+          "allOf": [
+            {"if": {"properties": {"method": {"const": "manual"}}}, "then": {"required": ["steps"]}},
+            {"if": {"properties": {"method": {"const": "setting"}}}, "then": {"required": ["setting"]}},
+            {"if": {"properties": {"method": {"const": "package"}}}, "then": {"required": ["packages"]}}
+          ]
+        },
+        "risk": {"$ref": "#/definitions/risk"},
+        "side_effects": {"type": "string", "minLength": 3},
+        "source": {"$ref": "#/definitions/url"},
+        "extra_sources": {"type": "array", "items": {"$ref": "#/definitions/url"}},
+        "proof": {"$ref": "#/definitions/proof"},
+        "report": {"type": "string"},
+        "capture": {"type": "boolean"},
+        "notes": {"type": "string"}
+      },
+      "allOf": [{"$ref": "#/definitions/tested_needs_report"}]
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role", "category", "risk", "side_effects", "source", "proof"],
+      "properties": {
+        "name": {"$ref": "#/definitions/package_name"},
+        "role": {"type": "string", "minLength": 3},
+        "category": {"enum": ["ads", "tracking", "bloat"]},
+        "risk": {"$ref": "#/definitions/risk"},
+        "side_effects": {"type": "string", "minLength": 3},
+        "source": {"$ref": "#/definitions/url"},
+        "extra_sources": {"type": "array", "items": {"$ref": "#/definitions/url"}},
+        "proof": {"$ref": "#/definitions/proof"},
+        "report": {"type": "string"},
+        "surfaces": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9_]{2,60}$"}},
+        "regions": {"type": "array", "items": {"type": "string", "pattern": "^[a-z_]+$"}},
+        "notes": {"type": "string"}
+      },
+      "allOf": [{"$ref": "#/definitions/tested_needs_report"}]
+    },
+    "drill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "reason", "source"],
+      "properties": {
+        "name": {"$ref": "#/definitions/package_name"},
+        "reason": {"type": "string", "minLength": 3},
+        "source": {"$ref": "#/definitions/url"}
+      }
+    },
+    "dns_provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "hostname", "filters", "source"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9_]{2,40}$"},
+        "name": {"type": "string"},
+        "hostname": {"type": "string", "pattern": "^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"},
+        "filters": {"type": "string"},
+        "source": {"$ref": "#/definitions/url"}
+      }
+    },
+    "info_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "namespace", "key", "explain", "source"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9_]{2,60}$"},
+        "name": {"type": "string"},
+        "namespace": {"enum": ["system", "secure", "global"]},
+        "key": {"type": "string", "pattern": "^[A-Za-z0-9_.]{1,100}$"},
+        "explain": {"type": "string"},
+        "source": {"$ref": "#/definitions/url"}
+      }
+    }
+  }
+}

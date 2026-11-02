@@ -1,0 +1,18 @@
+# Rules for choosing the Undo Drill package. The candidates themselves are
+# listed under "drill_candidates" in each catalog file.
+#
+# A candidate is used only if every rule below holds on the phone at the time
+# of the drill. If none qualifies, the drill stops and suggests scan-only use.
+
+schema_version: 1
+rules:
+  must_be_installed_for_user_0: true
+  must_be_enabled: true
+  must_pass_guard: true
+  must_not_hold_a_role: true
+  must_not_be_in_foreground: true
+  must_not_be_protected: true
+# Seconds to wait after each change before reading the state back.
+settle_seconds: 1
+# How many times to read the state back before calling it a failure.
+readback_attempts: 3

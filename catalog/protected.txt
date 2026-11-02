@@ -1,0 +1,152 @@
+# Packages AdReceipts never touches, whatever a plan or catalog says.
+# One name per line. A name ending in ".*" protects every package that starts
+# with that prefix. Lines starting with # are comments.
+#
+# On top of this list, guard also refuses at run time:
+#   - names containing bank, wallet, pay, auth or 2fa (unless a catalog entry
+#     rates that exact package "safe"),
+#   - the current holders of the home, dialer, SMS, browser and assistant
+#     roles, the keyboard, the WebView provider, device admins and
+#     accessibility services,
+#   - any package not listed in a catalog file.
+
+# Core system
+android
+com.android.systemui
+com.android.settings
+com.android.settings.*
+com.android.shell
+com.android.providers.*
+com.android.packageinstaller
+com.google.android.packageinstaller
+com.android.permissioncontroller
+com.google.android.permissioncontroller
+com.android.keychain
+com.android.certinstaller
+com.android.externalstorage
+com.android.documentsui
+com.google.android.documentsui
+com.android.mtp
+com.android.networkstack
+com.android.networkstack.*
+com.google.android.networkstack
+com.google.android.networkstack.*
+com.android.wifi.*
+com.google.android.wifi.*
+com.android.carrierconfig
+com.android.carrierconfig.*
+com.android.ons
+com.android.location.fused
+com.android.inputdevices
+com.android.vpndialogs
+com.android.proxyhandler
+com.android.server.*
+com.google.android.ext.services
+com.google.android.ext.shared
+com.android.ext.services
+com.google.android.modulemetadata
+com.android.modulemetadata
+com.google.android.apex.*
+com.android.apex.*
+
+# Phone, SMS, emergency
+com.android.phone
+com.android.server.telecom
+com.android.dialer
+com.google.android.dialer
+com.android.incallui
+com.android.contacts
+com.google.android.contacts
+com.android.mms
+com.android.mms.*
+com.google.android.apps.messaging
+com.android.messaging
+com.android.stk
+com.android.simappdialog
+com.android.cellbroadcastreceiver
+com.android.cellbroadcastreceiver.*
+com.google.android.cellbroadcastreceiver
+com.google.android.cellbroadcastreceiver.*
+com.android.cellbroadcastservice
+com.google.android.cellbroadcastservice
+com.android.emergency
+com.google.android.apps.safetyhub
+com.android.ims
+com.android.ims.*
+com.qualcomm.qti.ims
+com.android.imsserviceentitlement
+
+# NFC, payments, secure element, Bluetooth
+com.android.nfc
+com.android.se
+com.android.bluetooth
+com.android.bluetoothmidiservice
+com.google.android.apps.walletnfcrel
+com.google.android.apps.nbu.paisa.user
+com.miui.tsmclient
+com.mipay.wallet
+com.mipay.wallet.*
+
+# Google security, store, services, WebView
+com.android.vending
+com.google.android.gms
+com.google.android.gms.*
+com.google.android.gsf
+com.google.android.gsf.*
+com.google.android.webview
+com.android.webview
+com.android.chrome
+com.google.android.trichromelibrary
+com.google.android.trichromelibrary.*
+com.google.android.apps.authenticator2
+com.google.android.configupdater
+com.google.android.partnersetup
+com.google.android.setupwizard
+com.android.provision
+
+# Updates
+com.android.updater
+com.google.android.apps.work.oobconfig
+com.android.dynsystem
+
+# Keyboards and launchers
+com.android.inputmethod.latin
+com.google.android.inputmethod.latin
+com.android.launcher3
+com.google.android.apps.nexuslauncher
+com.miui.home
+com.mi.android.globallauncher
+
+# Photos, storage, backups
+com.miui.gallery
+com.google.android.apps.photos
+com.miui.cloudbackup
+com.miui.backup
+com.miui.cloudservice
+com.miui.cloudservice.*
+com.google.android.apps.restore
+com.google.android.backuptransport
+com.android.backupconfirm
+com.android.sharedstoragebackup
+com.android.localtransport
+com.android.wallpaperbackup
+
+# Xiaomi system and security
+com.miui.securitycore
+com.miui.securitycenter
+com.miui.securityadd
+com.miui.guardprovider
+com.miui.global.packageinstaller
+com.lbe.security.miui
+com.xiaomi.finddevice
+com.xiaomi.xmsf
+com.xiaomi.account
+com.xiaomi.misettings
+com.miui.core
+com.miui.rom
+com.miui.system
+com.miui.powerkeeper
+com.miui.notification
+com.miui.systemui.*
+com.xiaomi.discover
+com.android.camera

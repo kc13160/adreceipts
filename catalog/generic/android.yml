@@ -1,0 +1,75 @@
+# Checks that apply to Android phones of any brand.
+# Every entry is "documented" from a public source. Nothing is tested yet.
+
+schema_version: 1
+brand: "generic"
+family: "android"
+display_name: "Android (all brands)"
+system_versions: ["Android 9 and later"]
+regions: ["global"]
+notes: "Generic checks only. Brand files add the detailed ad locations."
+match:
+  any: true
+
+surfaces:
+  - id: "advertising_id"
+    name: "Google advertising ID"
+    app: "com.android.settings"
+    ad_type: "personalized_ads"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open Settings."
+        - "Open 'Privacy', then 'Ads' (on some phones: 'Google', then 'Ads')."
+        - "Tap 'Delete advertising ID' and confirm."
+    risk: "safe"
+    side_effects: "Apps can still show ads, but not ones based on this ID. Available on Android 12 and later."
+    source: "https://support.google.com/googleplay/android-developer/answer/6048248?hl=en"
+    proof: "documented"
+    capture: false
+    notes: "AdReceipts cannot read this setting over USB, so scan reports it as 'not checked'."
+
+packages: []
+
+drill_candidates:
+  - name: "com.android.egg"
+    reason: "Android version easter egg. Nothing depends on it."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+  - name: "com.android.printservice.recommendation"
+    reason: "Suggests print apps from the store. Printing itself does not need it."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+  - name: "com.google.android.printservice.recommendation"
+    reason: "Google variant of the print app suggestions. Printing itself does not need it."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+  - name: "com.android.dreams.basic"
+    reason: "Basic screen saver. Disabled for a few seconds only during the drill."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+  - name: "com.android.dreams.phototable"
+    reason: "Photo screen saver. Disabled for a few seconds only during the drill."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+
+dns_providers:
+  - id: "adguard"
+    name: "AdGuard DNS (default servers)"
+    hostname: "dns.adguard-dns.com"
+    filters: "Blocks ad and tracking domains."
+    source: "https://adguard-dns.io/kb/general/dns-providers/"
+  - id: "mullvad"
+    name: "Mullvad DNS (adblock)"
+    hostname: "adblock.dns.mullvad.net"
+    filters: "Blocks ad and tracking domains."
+    source: "https://mullvad.net/en/help/dns-over-https-and-dns-over-tls"
+
+info_checks:
+  - id: "private_dns_mode"
+    name: "Private DNS mode"
+    namespace: "global"
+    key: "private_dns_mode"
+    explain: "off, opportunistic (automatic) or hostname (a provider you chose)."
+    source: "https://android-developers.googleblog.com/2018/04/dns-over-tls-support-in-android-p.html"
+  - id: "private_dns_specifier"
+    name: "Private DNS provider hostname"
+    namespace: "global"
+    key: "private_dns_specifier"
+    explain: "The provider hostname, when the mode is 'hostname'."
+    source: "https://android-developers.googleblog.com/2018/04/dns-over-tls-support-in-android-p.html"

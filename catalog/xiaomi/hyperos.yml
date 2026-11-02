@@ -1,0 +1,382 @@
+# Xiaomi, Redmi and Poco phones running HyperOS.
+#
+# Every entry is "documented": it comes from a public source linked below.
+# Nothing here has been tested on a real device yet. When you test an entry,
+# add a device report (see CONTRIBUTING.md) and link it before changing the
+# proof level to "tested".
+#
+# Menu names differ between versions, regions and languages. The steps below
+# follow the wording of the linked sources.
+
+schema_version: 1
+brand: "xiaomi"
+family: "hyperos"
+display_name: "Xiaomi / Redmi / Poco with HyperOS"
+system_versions: ["HyperOS 1", "HyperOS 2"]
+regions: ["global"]
+notes: "Sources describe HyperOS 1 and 2 global builds. Later versions and China builds may differ."
+match:
+  brands: ["xiaomi", "redmi", "poco"]
+  require_prop: "ro.mi.os.version.name"
+
+surfaces:
+  - id: "msa_system_ads"
+    name: "System ads service (msa)"
+    app: "com.android.settings"
+    ad_type: "ad_service"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open Settings."
+        - "Open 'Fingerprints, face data and screen lock' (on some phones: 'Passwords & security')."
+        - "Open 'Authorization & revocation'."
+        - "Turn off 'msa', wait a few seconds, then confirm with 'Revoke'."
+    risk: "safe"
+    side_effects: "Xiaomi apps that rely on msa for ads may stop showing them. Ads inside each app also have their own switch (see the other entries)."
+    source: "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    extra_sources:
+      - "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-phones-quickly.1227806.0.html"
+      - "https://www.gizchina.com/2025/03/26/how-to-remove-ads-and-bloatware-on-xiaomi-redmi-and-poco-with-hyperos-march/"
+    proof: "documented"
+    capture: false
+
+  - id: "personalized_ad_recommendations"
+    name: "Personalized ad recommendations"
+    app: "com.android.settings"
+    ad_type: "personalized_ads"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open Settings."
+        - "Open 'Fingerprints, face data and screen lock' (or 'Passwords & security')."
+        - "Open 'Privacy', then 'Ad services'."
+        - "Turn off 'Personalized ad recommendations'."
+    risk: "safe"
+    side_effects: "Ads are no longer based on your usage. The source notes this does not remove ads by itself."
+    source: "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    proof: "documented"
+    capture: false
+
+  - id: "security_app_recommendations"
+    name: "Security app recommendations"
+    app: "com.miui.securitycenter"
+    ad_type: "recommendations"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open the Security app."
+        - "Tap the gear icon at the top right."
+        - "Turn off 'Receive recommendations' (also called 'Show recommendations')."
+    risk: "safe"
+    side_effects: "None reported. The Security app keeps its protections; only recommendations are turned off."
+    source: "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    extra_sources:
+      - "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-smartphones.1093885.0.html"
+    proof: "documented"
+    capture: true
+    notes: "The Security app hosts phone protections. Use its settings; AdReceipts never disables this app."
+
+  - id: "cleaner_recommendations"
+    name: "Cleaner recommendations"
+    app: "com.miui.securitycenter"
+    ad_type: "recommendations"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open the Security app, then 'Cleaner'."
+        - "Open the Cleaner settings."
+        - "Turn off 'Receive recommendations' (also called 'Show recommendations')."
+    risk: "safe"
+    side_effects: "None reported."
+    source: "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    extra_sources:
+      - "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-smartphones.1093885.0.html"
+    proof: "documented"
+    capture: false
+
+  - id: "downloads_ads"
+    name: "Ads in the Downloads app"
+    app: "com.android.providers.downloads.ui"
+    ad_type: "banner"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open the Downloads app."
+        - "Tap the menu icon at the top right, then 'Settings'."
+        - "Turn off 'Show ads' (some versions say 'Show recommended content')."
+    risk: "safe"
+    side_effects: "None reported."
+    source: "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-phones-quickly.1227806.0.html"
+    extra_sources:
+      - "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    proof: "documented"
+    capture: false
+    notes: "No screenshots here: the Downloads screen shows your file names."
+
+  - id: "themes_ads"
+    name: "Ads in the Themes app"
+    app: "com.android.thememanager"
+    ad_type: "banner"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open the Themes app."
+        - "Tap your account icon at the bottom right, then the gear icon."
+        - "Turn off 'Show ads' and 'Personalized recommendations'."
+    risk: "safe"
+    side_effects: "None reported."
+    source: "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-phones-quickly.1227806.0.html"
+    extra_sources:
+      - "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    proof: "documented"
+    capture: true
+
+  - id: "music_ads"
+    name: "Ads in the Music app"
+    app: "com.miui.player"
+    ad_type: "banner"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open the Music app."
+        - "Tap the icon at the top left, then 'Settings'."
+        - "Open 'Advanced settings'."
+        - "Turn off 'Show ads', 'Show online recommendations on startup' and 'Personalized recommendations'."
+    risk: "safe"
+    side_effects: "None reported."
+    source: "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-smartphones.1093885.0.html"
+    extra_sources:
+      - "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    proof: "documented"
+    capture: false
+    notes: "No screenshots here: the Music screen shows your own library."
+
+  - id: "video_recommendations"
+    name: "Recommendations in Mi Video"
+    app: "com.miui.videoplayer"
+    ad_type: "recommendations"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open Mi Video."
+        - "Tap the profile icon, then the gear icon."
+        - "Turn off 'Personalized recommendations'."
+    risk: "safe"
+    side_effects: "The source reports Xiaomi says this switch stays off for 90 days only. Run recheck later."
+    source: "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-phones-quickly.1227806.0.html"
+    proof: "documented"
+    capture: false
+    notes: "No screenshots here: the video screen shows your own videos."
+
+  - id: "browser_ads"
+    name: "Ads in Mi Browser"
+    app: "com.mi.globalbrowser"
+    ad_type: "banner"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open Mi Browser."
+        - "Tap the profile icon at the bottom right, then the gear icon."
+        - "Open 'Advanced' and turn off 'Show ads'."
+        - "Open 'Privacy & security' and turn off 'Personalized services'."
+    risk: "safe"
+    side_effects: "None reported."
+    source: "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-phones-quickly.1227806.0.html"
+    extra_sources:
+      - "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    proof: "documented"
+    capture: false
+    notes: "Never captured: browser screens can show your history."
+
+  - id: "app_drawer_recommendations"
+    name: "App suggestions in the app drawer"
+    app: "com.miui.home"
+    ad_type: "promoted_apps"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open the app drawer."
+        - "Tap the gear icon at the top right."
+        - "Turn off 'App recommendations' (also called 'App suggestions')."
+    risk: "safe"
+    side_effects: "None reported."
+    source: "https://www.gizchina.com/2025/03/26/how-to-remove-ads-and-bloatware-on-xiaomi-redmi-and-poco-with-hyperos-march/"
+    proof: "documented"
+    capture: false
+
+  - id: "app_folder_recommendations"
+    name: "Suggested apps in home screen folders"
+    app: "com.miui.home"
+    ad_type: "promoted_apps"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open a home screen folder that shows suggested apps."
+        - "Look for a recommendations or promoted apps option in that folder and turn it off."
+        - "The exact control differs between phones and regions."
+    risk: "safe"
+    side_effects: "None reported."
+    source: "https://macmyths.com/how-to-disable-ads-on-xiaomi-miui-and-hyperos/"
+    proof: "documented"
+    capture: false
+    notes: "The source names folders as a place to check but does not give an exact menu path. A device report with the exact path is welcome."
+
+  - id: "lock_screen_wallpaper_carousel"
+    name: "Lock screen Wallpaper Carousel"
+    app: "com.miui.android.fashiongallery"
+    ad_type: "lock_screen"
+    turn_off:
+      method: "package"
+      packages: ["com.miui.android.fashiongallery"]
+    risk: "safe"
+    side_effects: "The lock screen stops rotating wallpapers from the carousel."
+    source: "https://www.gizchina.com/2025/03/26/how-to-remove-ads-and-bloatware-on-xiaomi-redmi-and-poco-with-hyperos-march/"
+    proof: "documented"
+    capture: false
+
+  - id: "app_vault"
+    name: "App Vault panel"
+    app: "com.mi.globalminusscreen"
+    ad_type: "recommendations"
+    turn_off:
+      method: "manual"
+      steps:
+        - "Open App Vault (swipe right from the first home screen)."
+        - "Tap the menu icon at the top right, then 'Manage services'."
+        - "Turn off 'App suggestions' and 'Ads'."
+    risk: "safe"
+    side_effects: "None reported."
+    source: "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-phones-quickly.1227806.0.html"
+    proof: "documented"
+    capture: false
+
+packages:
+  - name: "com.miui.msa.global"
+    role: "Xiaomi system ads service (msa)"
+    category: "ads"
+    risk: "safe"
+    side_effects: "Xiaomi apps that load ads through this service may stop showing them."
+    source: "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    extra_sources:
+      - "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+    surfaces: ["msa_system_ads"]
+    notes: "The cited guide turns msa off from Settings. Disabling the package is listed by community debloat lists."
+
+  - name: "com.miui.analytics"
+    role: "Xiaomi analytics (usage data sent to Xiaomi)"
+    category: "tracking"
+    risk: "safe"
+    side_effects: "None documented in the source."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+
+  - name: "com.miui.daemon"
+    role: "Xiaomi system daemon (collects usage data)"
+    category: "tracking"
+    risk: "prudent"
+    side_effects: "Effects of disabling the package are not well documented. One source only revokes its authorization from Settings."
+    source: "https://www.gizchina.com/2025/03/26/how-to-remove-ads-and-bloatware-on-xiaomi-redmi-and-poco-with-hyperos-march/"
+    extra_sources:
+      - "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+
+  - name: "com.miui.systemAdSolution"
+    role: "Xiaomi ads service on China builds"
+    category: "ads"
+    risk: "safe"
+    side_effects: "None documented in the source."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+    regions: ["china"]
+
+  - name: "com.miui.android.fashiongallery"
+    role: "Wallpaper Carousel (lock screen images)"
+    category: "ads"
+    risk: "safe"
+    side_effects: "The lock screen stops rotating wallpapers from the carousel."
+    source: "https://www.gizchina.com/2025/03/26/how-to-remove-ads-and-bloatware-on-xiaomi-redmi-and-poco-with-hyperos-march/"
+    proof: "documented"
+    surfaces: ["lock_screen_wallpaper_carousel"]
+
+  - name: "com.mi.globalminusscreen"
+    role: "App Vault (panel left of the home screen)"
+    category: "ads"
+    risk: "prudent"
+    side_effects: "The App Vault panel stops working. Its own settings can turn off ads without removing it."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+    surfaces: ["app_vault"]
+
+  - name: "com.miui.hybrid"
+    role: "Quick Apps (instant mini apps)"
+    category: "ads"
+    risk: "prudent"
+    side_effects: "Quick Apps links stop opening."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+
+  - name: "com.miui.cleanmaster"
+    role: "Cleaner component used by the Security app on global builds"
+    category: "ads"
+    risk: "prudent"
+    side_effects: "The Cleaner inside the Security app may stop working. Prefer the Cleaner setting."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+    surfaces: ["cleaner_recommendations"]
+
+  - name: "com.miui.player"
+    role: "Xiaomi Music app"
+    category: "bloat"
+    risk: "prudent"
+    side_effects: "The whole Music app stops. Its own settings can turn ads off instead."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+    surfaces: ["music_ads"]
+
+  - name: "com.miui.videoplayer"
+    role: "Mi Video app"
+    category: "bloat"
+    risk: "prudent"
+    side_effects: "The whole Mi Video app stops. Videos may open in another player."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+    surfaces: ["video_recommendations"]
+
+  - name: "com.mi.globalbrowser"
+    role: "Mi Browser"
+    category: "bloat"
+    risk: "prudent"
+    side_effects: "The whole browser stops. Never removed while it is your default browser."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+    surfaces: ["browser_ads"]
+
+  - name: "com.android.thememanager"
+    role: "Themes app"
+    category: "bloat"
+    risk: "advanced"
+    side_effects: "You can no longer change themes. Its own settings can turn ads off instead."
+    source: "https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json"
+    proof: "documented"
+    surfaces: ["themes_ads"]
+
+  - name: "com.miui.securitycenter"
+    role: "Security app (hosts phone protections)"
+    category: "ads"
+    risk: "forbidden"
+    side_effects: "Hosts protections. Turn off its recommendations in its settings instead."
+    source: "https://www.androidauthority.com/remove-ads-xiaomi-miui-1019139/"
+    proof: "documented"
+    surfaces: ["security_app_recommendations", "cleaner_recommendations"]
+
+  - name: "com.android.providers.downloads.ui"
+    role: "Downloads app"
+    category: "ads"
+    risk: "forbidden"
+    side_effects: "Part of the download system. Turn off its ads in its settings instead."
+    source: "https://www.notebookcheck.net/How-to-turn-off-ads-on-Xiaomi-phones-quickly.1227806.0.html"
+    proof: "documented"
+    surfaces: ["downloads_ads"]
+
+drill_candidates: []
