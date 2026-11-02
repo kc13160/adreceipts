@@ -1,0 +1,61 @@
+name: Device report
+description: Report how AdReceipts behaved on your phone, so others with the same phone can trust the catalog.
+title: "[Device report] <brand> <model> <system version>"
+labels: ["device-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do **not** include serial numbers, IMEI, account names, phone numbers, notification content or full logs.
+        A sanitized copy of your reports is made with `python adreceipts.py share`.
+  - type: input
+    id: phone
+    attributes:
+      label: Phone brand and model
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System version, Android version and region
+      placeholder: "e.g. HyperOS 3.0.x, Android 16, global"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AdReceipts version or commit
+  - type: dropdown
+    id: drill
+    attributes:
+      label: Did the undo drill pass?
+      options: ["Yes", "No", "Did not run it"]
+    validations:
+      required: true
+  - type: textarea
+    id: changed
+    attributes:
+      label: What was changed, and the result
+      description: "Catalog IDs (e.g. pkg:com.miui.msa.global) with done / blocked / failed."
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: What still worked afterwards
+      options:
+        - label: Calls
+        - label: SMS
+        - label: Notifications
+        - label: Banking or payment apps
+  - type: textarea
+    id: observed
+    attributes:
+      label: Before/after observations
+      description: Only what you saw. Say "not proven" if no ad was visible before.
+  - type: textarea
+    id: restore
+    attributes:
+      label: Did restore work?
+    validations:
+      required: true

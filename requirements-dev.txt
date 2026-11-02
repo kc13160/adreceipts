@@ -1,0 +1,5 @@
+# Development and tests only. The core needs nothing beyond Python 3.9+.
+pytest>=7
+PyYAML>=6
+jsonschema>=4
+Pillow>=9

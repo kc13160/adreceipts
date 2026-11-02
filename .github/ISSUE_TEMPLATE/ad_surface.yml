@@ -1,0 +1,62 @@
+name: Ad location
+description: Tell us where your phone shows built-in ads and how to turn them off. No coding needed.
+title: "[Ad location] <brand> <system version>: <where>"
+labels: ["catalog", "ad-location"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Please do **not** include serial numbers, IMEI, account names, phone numbers or personal screenshots.
+        If you attach a screenshot, make it with `python adreceipts.py share --include-images` and look at it first.
+  - type: input
+    id: phone
+    attributes:
+      label: Phone brand and model
+      placeholder: "e.g. Redmi Note 13"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System version and region
+      placeholder: "e.g. HyperOS 2.0.x, global"
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where does the ad appear?
+      placeholder: "e.g. Themes app, home tab, a banner marked 'Ad'"
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: How do you turn it off?
+      description: The exact menu path, one step per line, using the words on your screen.
+      placeholder: |
+        Open Themes
+        Tap the profile icon
+        Turn off "Show ads"
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Public source (optional)
+      description: A link to an article or official page that describes this, if you have one.
+  - type: dropdown
+    id: confirmed
+    attributes:
+      label: Did you try it yourself?
+      options:
+        - "Yes, it worked on my phone"
+        - "Yes, but it did not work or came back"
+        - "No, I only saw it described"
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Sanitized screenshot (optional)
+      description: Only after checking it contains nothing personal.
