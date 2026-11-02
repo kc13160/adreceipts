@@ -118,7 +118,22 @@ No phone was connected (`adb devices` listed none). `doctor` and `scan` were **n
 
 ## Publication (section 12b)
 
-See the section at the end of this file. It is filled in after the checks.
+All six checks passed before publishing:
+
+1. Tests: 194 passed.
+2. `gh api user --jq .login` returned exactly `kc13160`.
+3. `gh repo view kc13160/adreceipts` reported "Could not resolve to a Repository", so nothing was overwritten.
+4. Tracked files contain no local paths, real emails, tokens, serial numbers, real phone output or real screenshots. The only PNGs are the drawn SIMULATED demo images. Neither `.claude/` nor `reports/` is tracked.
+5. The experimental banner is in the README, and the docs make no real-device claim (enforced by `tests/test_docs.py`).
+6. `git log` has no trailer.
+
+What was done:
+
+- Published with `gh repo create adreceipts --public --source . --remote origin --push --description "..."`, at https://github.com/kc13160/adreceipts.
+- Topics added: android, adb, debloat, ads, adblock, privacy, xiaomi, hyperos, miui, ai-agent, claude-code, no-root, python.
+- Push verified from the remote: `git ls-remote origin refs/heads/main` matched local HEAD, and the repository file list matched.
+- GitHub Actions run 41489328687: all 11 jobs passed. That covers Python 3.9, 3.10, 3.11, 3.12 and 3.13 on ubuntu-24.04 and windows-latest, plus the standard-library-only job. This confirms Python 3.9.
+- No force push. Nothing was published to PyPI, and nothing was posted on social media.
 
 ## Finished
 
@@ -131,6 +146,17 @@ See the section at the end of this file. It is filled in after the checks.
 ## Not finished
 
 - **Nothing has been tested on a real phone.** All catalog entries stay `documented`.
-- Python 3.9 has not been run locally. It is covered only by CI.
+- Python 3.9 was not run on this computer. It passed in CI.
 - Known limit 12 above.
 - The catalog's menu paths come from articles about HyperOS 1 and 2. HyperOS 3 may differ.
+
+## Exact next action for the owner
+
+Follow [TEST_ON_PHONE.md](TEST_ON_PHONE.md) on your Xiaomi phone. Start with step 1 (back up), then step 4:
+
+```text
+python adreceipts.py doctor
+python adreceipts.py scan
+```
+
+Both commands only read. Then fill in the device report (step 10), and use the checklist in [LAUNCH.md](LAUNCH.md) to update the catalog and README with real results before you post the announcement.
