@@ -1,6 +1,6 @@
 # AdReceipts receipts
 
-_Xiaomi SIMULATED-PHONE, Android 16, system OS3.0.301.0.SIMULATED - 2026-11-02T16:50:42+00:00_
+_Xiaomi SIMULATED-PHONE, Android 16, system OS3.0.301.0.SIMULATED - 2026-11-02T17:09:19+00:00_
 
 > **SIMULATED: this report was produced with a fake phone (tests/fake_adb.py). It is not a real device result.**
 
@@ -8,7 +8,7 @@ _Xiaomi SIMULATED-PHONE, Android 16, system OS3.0.301.0.SIMULATED - 2026-11-02T1
 
 ## Summary
 
-Phone family: Xiaomi SIMULATED-PHONE, Android 16, system OS3.0.301.0.SIMULATED. Before: scan of 2026-11-02T16:50:41+00:00. After: 2026-11-02T16:50:42+00:00.
+Phone family: Xiaomi SIMULATED-PHONE, Android 16, system OS3.0.301.0.SIMULATED. Before: scan of 2026-11-02T17:09:19+00:00. After: 2026-11-02T17:09:19+00:00.
 
 > A receipt says only what was observed. A location where no ad was seen before is 'not proven', never 'removed'. A screen without an ad at one moment does not prove the ad is gone for good.
 

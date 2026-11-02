@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 from .errors import AdReceiptsError
-from .guard import HOSTNAME_RE, NAMESPACES, SETTING_KEY_RE, SETTING_VALUE_RE, valid_package_name
+from .guard import NAMESPACES, SETTING_KEY_RE, SETTING_VALUE_RE, valid_package_name
 from .store import now_iso, write_text
 
 OPEN_PHASES = ("intent", "done", "failed", "blocked")
@@ -21,6 +21,7 @@ class Journal:
     def __init__(self, run_dir):
         self.run_dir = Path(run_dir)
         self.path = self.run_dir / "journal.jsonl"
+        self.damaged_tail = False
 
     def _append(self, record):
         record["time"] = now_iso()
@@ -33,12 +34,21 @@ class Journal:
         if not self.path.exists():
             return []
         out = []
-        for n, line in enumerate(self.path.read_text(encoding="utf-8").splitlines(), start=1):
-            if not line.strip():
-                continue
+        lines = [l for l in self.path.read_text(encoding="utf-8").splitlines() if l.strip()]
+        for n, line in enumerate(lines, start=1):
             try:
                 out.append(json.loads(line))
             except ValueError:
+                if n == len(lines):
+                    # A crash while writing can cut the last line. Move it aside so later
+                    # records start on a clean line; the intent before it still covers the change.
+                    self.damaged_tail = True
+                    with open(self.run_dir / "journal-damaged-line.txt", "a", encoding="utf-8") as fh:
+                        fh.write(line + "\n")
+                    good = "".join(l + "\n" for l in lines[:-1])
+                    with open(self.path, "w", encoding="utf-8", newline="\n") as fh:
+                        fh.write(good)
+                    continue
                 raise AdReceiptsError("journal.jsonl line %d is damaged." % n,
                                       hint="Use the standalone restore script in the same folder.")
         return out
@@ -52,6 +62,7 @@ class Journal:
         record = {"id": change_id, "phase": "intent", "batch": str(batch), "op": op, "target": target, "before": before}
         record.update(extra)
         self._append(record)
+        self.write_scripts()
         return change_id
 
     def mark(self, change_id, phase, after=None, note=None):
@@ -90,13 +101,16 @@ class Journal:
     # ---- standalone restore scripts -------------------------------------
 
     def script_commands(self):
-        cmds = []
+        cmds, skipped = [], []
         for c in self.open_changes():
-            cmds.extend(reverse_commands(c))
-        return cmds
+            try:
+                cmds.extend(reverse_commands(c))
+            except AdReceiptsError:
+                skipped.append(c.get("target"))
+        return cmds, skipped
 
     def write_scripts(self):
-        cmds = self.script_commands()
+        cmds, skipped = self.script_commands()
         header = [
             "AdReceipts standalone restore script.",
             "Reverses only the changes AdReceipts recorded in journal.jsonl, newest first.",
@@ -107,6 +121,9 @@ class Journal:
         if not cmds:
             sh.append('echo "Nothing to restore: no change is recorded yet."')
             bat.append("echo Nothing to restore: no change is recorded yet.")
+        for target in skipped:
+            sh.append("# Not included (unsafe value in the journal), undo by hand: %s" % _comment(target))
+            bat.append("rem Not included (unsafe value in the journal), undo by hand: %s" % _comment(target))
         for args in cmds:
             sh.append('"$ADB" ' + " ".join(args))
             bat.append('"%ADB_EXE%" ' + " ".join(args))
@@ -114,6 +131,10 @@ class Journal:
         bat.append("echo Done. Check the phone, then run: python adreceipts.py recheck")
         write_text(self.run_dir / "restore-standalone.sh", "\n".join(sh) + "\n")
         write_text(self.run_dir / "restore-standalone.cmd", "\r\n".join(bat) + "\r\n")
+
+
+def _comment(value):
+    return "".join(c for c in str(value) if c.isalnum() or c in "._-/")[:120]
 
 
 def _safe(value, pattern):
@@ -137,7 +158,7 @@ def reverse_commands(change):
             cmds.append(["shell", "pm", "enable", "--user", "0", target])
         return cmds
     if op == "setting":
-        ns = change["namespace"]
+        ns = change.get("namespace")
         if ns not in NAMESPACES:
             raise AdReceiptsError("Bad namespace in journal: %r" % ns)
         key = _safe(change["key"], SETTING_KEY_RE)
@@ -152,7 +173,7 @@ def reverse_commands(change):
         if spec is None or spec == "":
             cmds.append(["shell", "settings", "delete", "global", "private_dns_specifier"])
         else:
-            cmds.append(["shell", "settings", "put", "global", "private_dns_specifier", _safe(spec, HOSTNAME_RE)])
+            cmds.append(["shell", "settings", "put", "global", "private_dns_specifier", _safe(spec, SETTING_VALUE_RE)])
         if mode is None:
             cmds.append(["shell", "settings", "delete", "global", "private_dns_mode"])
         else:

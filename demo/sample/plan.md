@@ -1,6 +1,6 @@
 # AdReceipts plan
 
-_2026-11-02T16:50:41+00:00_
+_2026-11-02T17:09:19+00:00_
 
 > **SIMULATED: this report was produced with a fake phone (tests/fake_adb.py). It is not a real device result.**
 
@@ -8,11 +8,11 @@ _2026-11-02T16:50:41+00:00_
 
 ## Summary
 
-Phone: Xiaomi SIMULATED-PHONE, Android 16, system OS3.0.301.0.SIMULATED. Run: 20261102-175041.
+Phone: Xiaomi SIMULATED-PHONE, Android 16, system OS3.0.301.0.SIMULATED. Run: 20261102-180919.
 
 > Only entries rated safe and tested on a real device are pre-selected. Nothing in the catalog is tested yet, so nothing is pre-selected: choose each item yourself.
 
-Approved: yes, at 2026-11-02T16:50:41+00:00
+Approved: yes, at 2026-11-02T17:09:19+00:00
 
 ## Changes AdReceipts can make (only after approval)
 

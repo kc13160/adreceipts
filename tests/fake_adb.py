@@ -299,7 +299,8 @@ class FakeDevice:
         if a == ["dumpsys", "activity", "activities"]:
             return 0, "  mResumedActivity: ActivityRecord{1a2b u0 %s/.MainActivity t42}\n" % s["foreground"], ""
         if a == ["dumpsys", "window", "windows"]:
-            return 0, "  mCurrentFocus=Window{3c4d u0 %s/.MainActivity}\n" % s["foreground"], ""
+            focus = s.get("focus_override") or s["foreground"]
+            return 0, "  mCurrentFocus=Window{3c4d u0 %s/.MainActivity}\n" % focus, ""
         if a[:1] == ["pidof"] and len(a) == 2:
             name = a[1]
             p = self._pkg(name)

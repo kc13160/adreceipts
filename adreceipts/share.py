@@ -12,7 +12,10 @@ import datetime as _dt
 import re
 from pathlib import Path
 
+from . import catalog as _catalog
+from . import yamlite
 from .errors import AdReceiptsError
+from .journal import Journal
 from .store import read_json, write_text
 
 SHAREABLE = re.compile(r"^(scan|plan|receipts|recheck-[0-9-]+)\.(md|html)$")
@@ -23,7 +26,7 @@ SERIALISH = re.compile(r"\b(serial(?:no|_number| number)?\s*[:=]\s*)\S+", re.I)
 IMG_TAG = re.compile(r"<img\b[^>]*>", re.I)
 MD_IMAGE = re.compile(r"\(image: `[^`]*`\)")
 HEX_HASH = re.compile(r"\b[0-9a-f]{16}\b")
-STATUS_BAR_SHARE = 0.06
+STATUS_BAR_SHARE = 0.10
 
 
 def sanitize(text, secrets_to_remove=(), paths=()):
@@ -40,6 +43,36 @@ def sanitize(text, secrets_to_remove=(), paths=()):
     text = LONG_NUMBER.sub("[number removed]", text)
     text = HEX_HASH.sub("[id removed]", text)
     return text
+
+
+def known_dns_hosts(catalog_dir=None):
+    hosts = set()
+    for path in _catalog.catalog_files(catalog_dir or _catalog.default_dir()):
+        try:
+            data = yamlite.load_file(str(path)) or {}
+        except yamlite.YamlError:
+            continue
+        hosts.update(p.get("hostname") for p in data.get("dns_providers", []) or [])
+    return hosts
+
+
+def custom_dns_hosts(run_dir, catalog_dir=None):
+    """Private DNS hostnames that are not catalog providers. They can carry a personal account ID."""
+    found = set()
+    scan = read_json(run_dir / "scan.json") or {}
+    found.add(((scan.get("evidence") or {}).get("info") or {}).get("private_dns_specifier"))
+    backup = read_json(run_dir / "backup.json") or {}
+    found.add((backup.get("settings") or {}).get("global/private_dns_specifier"))
+    plan = read_json(run_dir / "plan.json") or {}
+    found.update(i.get("target") for i in plan.get("items", []) if i.get("kind") == "dns")
+    for c in Journal(run_dir).changes().values():
+        if c.get("op") == "dns":
+            found.add(c.get("target"))
+            found.add((c.get("before") or {}).get("specifier"))
+            found.add((c.get("after") or {}).get("specifier"))
+    found.discard(None)
+    found.discard("")
+    return sorted(found - known_dns_hosts(catalog_dir), key=len, reverse=True)
 
 
 def blur_status_bar(src, dst):
@@ -62,7 +95,7 @@ def run(app):
     run_id, run_dir = app.run()
     info = read_json(run_dir / "run.json") or {}
     dev = info.get("device", {})
-    secrets_to_remove = [dev.get("id_hash"), dev.get("build_hash")]
+    secrets_to_remove = [dev.get("id_hash"), dev.get("build_hash")] + custom_dns_hosts(run_dir, app.catalog_dir)
     paths = [str(run_dir.resolve()), str(app.home.resolve()), str(Path.home())]
     out = run_dir / ("share-%s" % _dt.datetime.now().strftime("%Y%m%d-%H%M%S"))
     files = sorted(p for p in run_dir.iterdir() if p.is_file() and SHAREABLE.match(p.name))
@@ -83,7 +116,7 @@ def run(app):
                 text = MD_IMAGE.sub("(image left out)", text)
         write_text(out / f.name, sanitize(text, secrets_to_remove, paths))
     app.say("Sanitized copy written: %s" % out,
-            "Removed: device IDs, account names, email addresses, long numbers, local paths.")
+            "Removed: device IDs, account names, email addresses, long numbers, local paths, custom DNS hosts.")
     if args.include_images:
         app.say("Included %d image(s) with the status bar blurred. Look at every image before you post it." % images)
     else:

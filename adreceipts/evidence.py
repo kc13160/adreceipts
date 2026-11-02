@@ -37,7 +37,8 @@ def package_label(pkg):
 def unknown_adlike(states, catalog):
     out = []
     for name in sorted(states):
-        if name in catalog.packages:
+        # System packages only: apps the user installed stay out of reports (they can be private).
+        if name in catalog.packages or not states[name].get("system"):
             continue
         if ADLIKE.search(name):
             out.append(name)

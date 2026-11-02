@@ -7,7 +7,7 @@ all for this same phone and system build. Without --execute nothing is sent.
 from __future__ import annotations
 
 from . import device, dns, guard, ops
-from .errors import RunStopped, SafetyStop
+from .errors import AdReceiptsError, RunStopped, SafetyStop
 from .journal import Journal
 from .plan import selection_hash
 from .store import now_iso, read_json, require_same_device, write_json
@@ -69,6 +69,24 @@ def describe(item, method):
     return "settings put global private_dns_specifier %s; private_dns_mode hostname; then test name lookups" % item["target"]
 
 
+def interrupted(app, ctx, batch_id, exc):
+    """adb failed or the user pressed Ctrl-C in the middle of a batch: try to undo it, then stop."""
+    reason = "interrupted by the user" if isinstance(exc, KeyboardInterrupt) else getattr(exc, "message", str(exc))
+    try:
+        failures = ops.undo_batch(ctx, batch_id)
+        undo = "The batch was undone." if not failures else "Undo was incomplete: %s." % "; ".join(failures)
+    except (AdReceiptsError, KeyboardInterrupt, OSError):
+        failures = ["not possible right now"]
+        undo = "The batch could not be undone right now."
+    try:
+        ctx.journal.write_scripts()
+    except (AdReceiptsError, OSError):
+        pass
+    raise RunStopped("Stopped in batch %s: %s. %s" % (batch_id, reason, undo),
+                     hint="Reconnect the phone, then run: python adreceipts.py restore --all "
+                          "(or restore-standalone in the run folder).")
+
+
 def run(app):
     args = app.args
     method = args.method
@@ -85,6 +103,9 @@ def run(app):
     cat = app.catalog(props)
     states = device.package_states(adb)
     role_map = device.roles(adb)
+    if role_map.get("unreadable"):
+        raise SafetyStop("Some role holders could not be read (%s), so they cannot be protected. Nothing was changed."
+                         % ", ".join(role_map["unreadable"]), hint="Android 10 or newer is needed for changes.")
     if not role_map.get("home"):
         raise SafetyStop("The home screen app could not be read, so health checks are not possible. Nothing was changed.")
     held = device.role_holders(role_map)
@@ -117,21 +138,27 @@ def run(app):
         entry = {"batch": batch_id, "items": [], "status": "done"}
         stop, blocked = None, False
         app.say("Batch %s:" % batch_id)
-        for it in batch:
-            if it["kind"] == "package":
-                status, detail = ops.change_package(ctx, batch_id, it["target"], method)
-            elif it["kind"] == "setting":
-                status, detail = ops.change_setting(ctx, batch_id, it["namespace"], it["key"], it["value"])
-            else:
-                status, detail = dns.set_private_dns(ctx, batch_id, it["target"])
-            entry["items"].append({"id": it["id"], "status": status, "detail": detail})
-            app.say("  %-45s %s (%s)" % (it["id"], status, detail))
-            if status in ("blocked", "failed"):
-                stop = "%s: %s" % (it["id"], detail)
-                blocked = status == "blocked"
-                break
+        try:
+            for it in batch:
+                if it["kind"] == "package":
+                    status, detail = ops.change_package(ctx, batch_id, it["target"], method)
+                elif it["kind"] == "setting":
+                    status, detail = ops.change_setting(ctx, batch_id, it["namespace"], it["key"], it["value"])
+                else:
+                    status, detail = dns.set_private_dns(ctx, batch_id, it["target"])
+                entry["items"].append({"id": it["id"], "status": status, "detail": detail})
+                app.say("  %-45s %s (%s)" % (it["id"], status, detail))
+                if status in ("blocked", "failed"):
+                    stop = "%s: %s" % (it["id"], detail)
+                    blocked = status == "blocked"
+                    break
+        except (AdReceiptsError, KeyboardInterrupt, OSError) as exc:
+            interrupted(app, ctx, batch_id, exc)
         if not stop:
-            problems = ops.health_check(adb, baseline, app.sleep)
+            try:
+                problems = ops.health_check(adb, baseline, app.sleep)
+            except (AdReceiptsError, KeyboardInterrupt, OSError) as exc:
+                interrupted(app, ctx, batch_id, exc)
             if problems:
                 stop = "health check failed: " + "; ".join(problems)
         if stop:

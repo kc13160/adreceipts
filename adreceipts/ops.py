@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 
 from . import device
+from .errors import AdReceiptsError
+from .guard import SETTING_VALUE_RE
 from .journal import reverse_commands
 
 BLOCKED = re.compile(
@@ -74,6 +76,8 @@ def change_setting(ctx, batch, namespace, key, value):
     before = device.setting(ctx.adb, namespace, key)
     if before == value:
         return "skipped", "already %s" % value
+    if before is not None and not SETTING_VALUE_RE.match(before):
+        return "failed", "the current value could not be put back safely, so it was not changed"
     cid = ctx.journal.intent(batch, "setting", "%s/%s" % (namespace, key), {"value": before},
                              namespace=namespace, key=key, value=value)
     ctx.adb.shell("settings", "put", namespace, key, value)
@@ -112,7 +116,11 @@ def reverse(ctx, change, phase):
     if ok:
         ctx.journal.mark(change["id"], phase, after=now, note="already in its original state")
         return True, "already in its original state"
-    for args in reverse_commands(change):
+    try:
+        commands = reverse_commands(change)
+    except AdReceiptsError as exc:
+        return False, exc.message
+    for args in commands:
         ctx.adb.run(args)
     ok, now = _wait_for(ctx, lambda: current_matches_before(ctx.adb, change))
     if ok:

@@ -44,7 +44,7 @@ Ad or tracking services switched on: 6
   - com.miui.daemon (Xiaomi system daemon (collects usage data))
   - com.miui.hybrid (Quick Apps (instant mini apps))
   - com.miui.msa.global (Xiaomi system ads service (msa))
-Unrecognized ad-like packages (reported only): 2
+Unrecognized ad-like packages (reported only): 1
 Report: reports/20261102-175126/scan.html
 Run: 20261102-175126
 

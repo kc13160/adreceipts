@@ -21,9 +21,13 @@ RUN_ID = re.compile(r"^\d{8}-\d{6}(-\d+)?$")
 
 
 def data_dir(cli_value=None):
-    path = cli_value or os.environ.get("ADRECEIPTS_HOME") or "reports"
-    p = Path(path)
+    """Default: <repository>/reports, whatever the current folder is. A .gitignore keeps it out of git."""
+    path = cli_value or os.environ.get("ADRECEIPTS_HOME")
+    p = Path(path) if path else REPO_ROOT / "reports"
     p.mkdir(parents=True, exist_ok=True)
+    ignore = p / ".gitignore"
+    if not ignore.exists():
+        ignore.write_text("# AdReceipts data: phone state, journals, screenshots. Never commit.\n*\n", encoding="utf-8")
     return p
 
 
@@ -67,7 +71,8 @@ def read_json(path, default=None):
 def write_text(path, text):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8", newline="\n")
+    with open(path, "w", encoding="utf-8", newline="\n") as fh:  # Path.write_text(newline=) needs 3.10
+        fh.write(text)
 
 
 def now_iso(clock=None):

@@ -36,6 +36,17 @@ PKG_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$")
 PROP_LINE = re.compile(r"^\[([^\]]+)\]: \[(.*)\]$")
 
 
+PLACEHOLDER_SERIALS = {"", "unknown", "0123456789abcdef", "0123456789", "emulator", "null"}
+
+
+def _list(adb, *flags):
+    res = adb.shell("pm", "list", "packages", *flags)
+    if res.rc != 0:
+        raise AdbError("Could not read the package list (pm list packages %s)." % " ".join(flags),
+                       hint="Unlock the phone, reconnect the cable and try again.")
+    return _packages(res.text)
+
+
 def _packages(text):
     out = set()
     for line in text.splitlines():
@@ -96,6 +107,9 @@ def props(adb):
 def fingerprint(adb, home):
     """Hashed identity of this phone and its system build. Raw values are not stored."""
     serial = adb.run(["get-serialno"]).text.strip()
+    if serial.lower() in PLACEHOLDER_SERIALS:
+        raise SafetyStop("This phone does not report a unique ID, so its files could be confused with another phone's.",
+                         hint="AdReceipts cannot keep changes safely tied to this phone. Use scan only.")
     build = adb.shell_text("getprop", "ro.build.fingerprint").strip()
     return {"id_hash": hash_id(home, serial), "build_hash": hash_id(home, build)}
 
@@ -122,10 +136,13 @@ def identity(adb, home):
 
 def package_states(adb):
     """{name: {"state": enabled|disabled|removed, "system": bool}} for user 0."""
-    installed = _packages(adb.shell_text("pm", "list", "packages", "--user", "0"))
-    disabled = _packages(adb.shell_text("pm", "list", "packages", "-d", "--user", "0"))
-    every = _packages(adb.shell_text("pm", "list", "packages", "-u", "--user", "0"))
-    system = _packages(adb.shell_text("pm", "list", "packages", "-s", "-u", "--user", "0"))
+    installed = _list(adb, "--user", "0")
+    disabled = _list(adb, "-d", "--user", "0")
+    every = _list(adb, "-u", "--user", "0")
+    system = _list(adb, "-s", "-u", "--user", "0")
+    if not installed or not system or "android" not in every:
+        raise AdbError("The package list from the phone looks incomplete, so nothing will be decided from it.",
+                       hint="Unlock the phone, reconnect the cable and try again.")
     out = {}
     for name in every | installed:
         if name not in installed:
@@ -146,7 +163,8 @@ def setting(adb, namespace, key):
     res = adb.shell("settings", "get", namespace, key)
     value = res.text.strip()
     if res.rc != 0:
-        return None
+        raise AdbError("Could not read the setting %s %s." % (namespace, key),
+                       hint="Unlock the phone, reconnect the cable and try again.")
     return None if value in ("", "null") else value
 
 
@@ -175,9 +193,10 @@ def require_unmanaged(adb):
         )
 
 
-def _role_holders(adb, role):
+def _role_holders(adb, role, unreadable):
     res = adb.shell("cmd", "role", "get-role-holders", role)
-    if res.rc != 0:
+    if res.rc != 0 or "Unknown command" in res.text or "Exception" in res.text:
+        unreadable.append(role)
         return []
     return [l.strip() for l in res.text.splitlines() if PKG_NAME.match(l.strip())]
 
@@ -194,8 +213,9 @@ def _component_pkgs(value):
 def roles(adb):
     """Packages that must stay untouched because they hold a role right now."""
     out = {}
+    unreadable = []
     for label, role in ROLES.items():
-        out[label] = _role_holders(adb, role)
+        out[label] = _role_holders(adb, role, unreadable)
     if not out["home"]:
         res = adb.shell("cmd", "package", "resolve-activity", "--brief", "-a", "android.intent.action.MAIN",
                         "-c", "android.intent.category.HOME")
@@ -212,14 +232,22 @@ def roles(adb):
     for m in re.finditer(r"ComponentInfo\{([A-Za-z0-9_.]+)/", policy):
         admins.add(m.group(1))
     out["device_admin"] = sorted(admins)
+    out["unreadable"] = unreadable
     return out
 
 
 def role_holders(role_map):
     held = set()
-    for names in role_map.values():
-        held.update(names)
+    for label, names in role_map.items():
+        if label != "unreadable":
+            held.update(names)
     return held
+
+
+def focused_window_package(adb):
+    text = adb.shell_text("dumpsys", "window", "windows")
+    m = re.search(r"mCurrentFocus=Window\{\S+ \S+ ([A-Za-z0-9_.]+)", text)
+    return m.group(1) if m else None
 
 
 def foreground(adb):

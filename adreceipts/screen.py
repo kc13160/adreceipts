@@ -111,9 +111,12 @@ def capture_surface(adb, surface, out_dir, tag, sleep):
         if device.foreground(adb) != app:
             ev["note"] = "capture aborted: another app was on screen"
             return ev
+        if device.focused_window_package(adb) != app:
+            ev["note"] = "capture aborted: another window (such as notifications) was on top"
+            return ev
         ui = adb.exec_out("uiautomator", "dump", "/dev/tty", timeout=60).text
         words = ad_words(ui)
-        if device.foreground(adb) != app:
+        if device.foreground(adb) != app or device.focused_window_package(adb) != app:
             ev["note"] = "capture aborted: another app was on screen"
             return ev
         shot = adb.exec_out("screencap", "-p", timeout=60).out

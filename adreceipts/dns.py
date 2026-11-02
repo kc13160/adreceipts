@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 
 from . import device
-from .guard import check_hostname
+from .guard import DNS_MODES, SETTING_VALUE_RE, check_hostname
 from .ops import reverse
 
 # A domain Android itself uses for connectivity checks; ad filters do not block it.
@@ -35,6 +35,11 @@ def set_private_dns(ctx, batch, host, tries=3, wait=3):
     }
     if before["mode"] == "hostname" and before["specifier"] == host:
         return "skipped", "already set to %s" % host
+    # The old values must be restorable before anything is changed.
+    if before["mode"] not in DNS_MODES + (None,) or (
+            before["specifier"] is not None and not SETTING_VALUE_RE.match(before["specifier"])):
+        return "failed", ("the current Private DNS setting has a value AdReceipts could not put back safely, "
+                          "so it was not changed")
     cid = ctx.journal.intent(batch, "dns", host, before)
     ctx.adb.shell("settings", "put", "global", "private_dns_specifier", host)
     ctx.adb.shell("settings", "put", "global", "private_dns_mode", "hostname")
