@@ -21,6 +21,19 @@ LABELS = (AD_SEEN, SETTING_ON, SERVICE_ACTIVE, NOT_SEEN, NOT_CHECKED)
 ADLIKE = re.compile(r"(^|\.)(ads?|adservices?|adsolution\w*|adsdk|admob|analytics|advert\w*|tracking|tracker\w*|promo\w*|msa)(\.|$)", re.I)
 
 
+def is_service(pkg):
+    """An ad or tracking service. Host apps rated 'forbidden' (Security, Downloads) are not."""
+    return pkg["category"] in ("ads", "tracking") and pkg["risk"] != "forbidden"
+
+
+def package_label(pkg):
+    if pkg["risk"] == "forbidden":
+        return "host app, never changed"
+    if pkg["state"] != "enabled":
+        return NOT_SEEN
+    return SERVICE_ACTIVE if is_service(pkg) else "app with ads, on"
+
+
 def unknown_adlike(states, catalog):
     out = []
     for name in sorted(states):
@@ -70,7 +83,7 @@ def collect(adb, catalog, screens=None):
             else:
                 details.append("setting %s is %s" % (st["key"], value if value is not None else "not set"))
         related = [n for n in catalog.packages_for_surface(sid) if n in packages]
-        active = [n for n in related if packages[n]["state"] == "enabled"]
+        active = [n for n in related if packages[n]["state"] == "enabled" and is_service(packages[n])]
         if active:
             labels.append(SERVICE_ACTIVE)
             details.extend("%s is on" % n for n in active)

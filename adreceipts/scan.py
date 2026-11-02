@@ -38,7 +38,7 @@ def surface_rows(cat, ev):
 def package_rows(ev):
     rows = []
     for name, p in sorted(ev["packages"].items()):
-        label = evidence.SERVICE_ACTIVE if p["state"] == "enabled" else evidence.NOT_SEEN
+        label = evidence.package_label(p)
         rows.append([{"code": name}, p["role"], p["state"], {"badges": [label]}, p["risk"], p["proof"]])
     return rows
 
@@ -103,10 +103,10 @@ def run(app):
     doc = build_doc(dev, props, cat, ev, args.screenshots, run_id)
     path = report.write(doc, run_dir, "scan")
 
-    active = [n for n, p in ev["packages"].items() if p["state"] == "enabled"]
+    active = [n for n, p in ev["packages"].items() if p["state"] == "enabled" and evidence.is_service(p)]
     app.say("Scan finished. Nothing was changed on the phone.",
             "Phone: %s" % report.device_line(dev),
-            "Ad or tracking packages switched on: %d" % len(active))
+            "Ad or tracking services switched on: %d" % len(active))
     for n in active:
         app.say("  - %s (%s)" % (n, ev["packages"][n]["role"]))
     seen = [sid for sid, s in ev["surfaces"].items() if evidence.AD_SEEN in s["labels"]]

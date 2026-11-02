@@ -21,7 +21,15 @@ SENSITIVE_WORDS = (
     "mms", "messag", "sms", "mail", "gallery", "photo", "camera", "browser", "chrome", "firefox",
     "contacts", "dialer", "settings", "notes", "files", "fileexplorer", "documents", "downloads",
 )
-COMPONENT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.]*/[A-Za-z0-9_.]+$")
+# Apps whose names do not reveal what they hold.
+SENSITIVE_EXACT = {
+    "com.google.android.gm", "com.microsoft.office.outlook", "com.android.email", "com.whatsapp", "com.whatsapp.w4b",
+    "org.telegram.messenger", "org.thoughtcrime.securesms", "com.facebook.orca", "com.facebook.katana",
+    "com.instagram.android", "com.snapchat.android", "com.viber.voip", "com.discord", "com.skype.raider",
+    "com.google.android.apps.docs", "com.google.android.keep", "com.google.android.apps.tachyon",
+    "com.android.vending", "com.google.android.gms", "com.miui.securitycore", "com.miui.notes",
+}
+COMPONENT_RE =re.compile(r"^[A-Za-z][A-Za-z0-9_.]*/[A-Za-z0-9_.]+$")
 AD_WORDS = re.compile(r"(?<![A-Za-z])(Ad|Ads|AD|ADS|Sponsored|Advertisement|Promoted|广告)(?![A-Za-z])")
 TEXT_ATTR = re.compile(r'(?:text|content-desc)="([^"]{1,200})"')
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -44,7 +52,7 @@ To agree, run the same command again with: --screenshots --consent
 
 def sensitive(package):
     low = (package or "").lower()
-    return any(w in low for w in SENSITIVE_WORDS)
+    return low in SENSITIVE_EXACT or any(w in low for w in SENSITIVE_WORDS)
 
 
 def capture_allowed(surface):
