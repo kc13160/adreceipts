@@ -1,5 +1,5 @@
 # Local phone data: never commit
-reports/
+/reports/
 runs/
 screenshots/
 backups/
