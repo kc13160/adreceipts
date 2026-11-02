@@ -8,7 +8,7 @@ python adreceipts.py restore --batch 2      # one batch
 python adreceipts.py restore --all --run 20261102-174053   # a specific run
 ```
 
-`restore` reads `journal.jsonl` and reverses only what it recorded, newest first. It never turns on something that was already off before AdReceipts, and it never touches what you changed by hand. Each undo is read back. Then run `python adreceipts.py recheck`.
+`restore` reads the journals of every run made on this phone (or only `--run ID`) and reverses only what they recorded, newest first. A later `scan` starts a new run but does not hide earlier changes from `restore --all`. It never turns on something that was already off before AdReceipts, and it never touches what you changed by hand. Each undo is read back. Then run `python adreceipts.py recheck`.
 
 Restore works after a system update. It refuses a different phone.
 

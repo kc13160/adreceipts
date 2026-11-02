@@ -43,3 +43,17 @@ The owner was away. Each time something was unclear, the safest reasonable optio
 28. **Reports live in `./reports` by default** (or `--data-dir` / `ADRECEIPTS_HOME`), git-ignored. Runs are named by local date and time.
 29. **BUILD.md is kept out of git** (listed in `.git/info/exclude`): it is the build brief, not part of the product.
 30. **Line endings:** `.gitattributes` stores text with LF; `.cmd` files with CRLF.
+
+## After the fresh-eyes review (section 12)
+
+31. **Old values must be restorable before a change.** If the current Private DNS value or a catalog setting holds characters that cannot be sent back safely, the change is refused before any write. Mixed-case hostnames are accepted for restore.
+32. **adb failure or Ctrl-C in the middle of a batch** now tries to undo that batch, rewrites the restore scripts, and stops with restore instructions. The standalone scripts are also rewritten right after each journal intent, before the command is sent.
+33. **`restore --all` looks through every run made on this phone** (newest first) unless `--run` is given, because each `scan` starts a new run. `--batch ID` uses the newest run that has that batch.
+34. **Restore refuses settings that guard would refuse**, so a hand-edited journal cannot make it write arbitrary settings.
+35. **Failed reads stop the command instead of guessing:** a failed or incomplete package list, a failed `settings get`, or unreadable role holders (apply refuses; Android 10+ is needed for changes). A phone without a unique serial (empty or placeholder) is refused, so two phones cannot share an identity.
+36. **Only system packages appear in the "unrecognized ad-like packages" list**: user-installed app names can be private.
+37. **`share` removes custom Private DNS hostnames**; catalog providers are kept.
+38. **The default data folder is `<repository>/reports`** whatever the current folder, and every data folder gets a `.gitignore` containing `*`.
+39. **A cut last journal line** (crash while writing) is moved to `journal-damaged-line.txt` instead of blocking restore.
+40. **Captures also check the focused window**, and share blurs the top 10% of images instead of 6%.
+41. **Not changed: the approval does not record the method, and the drill only exercises disable/enable.** The uninstall method already needs two explicit flags at apply time and is limited to system packages rated safe. Recorded as a known limit in REPORT.md.
