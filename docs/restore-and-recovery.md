@@ -3,7 +3,7 @@
 ## Undo with AdReceipts
 
 ```text
-python adreceipts.py restore --all          # every change recorded in the latest run
+python adreceipts.py restore --all          # every change AdReceipts recorded on this phone
 python adreceipts.py restore --batch 2      # one batch
 python adreceipts.py restore --all --run 20261102-174053   # a specific run
 ```
